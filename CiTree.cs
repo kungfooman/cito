@@ -484,10 +484,6 @@ public class CiConstExpr : CiExpr
 	{
 		this.Value = value;
 	}
-	public CiConstExpr(int value)
-	{
-		this.Value = value >= 0 && value <= 255 ? (byte) value : (object) value;
-	}
 	public override CiType Type
 	{
 		get
