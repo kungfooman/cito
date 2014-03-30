@@ -106,12 +106,14 @@ public class GenAs : SourceGenerator, ICiSymbolVisitor
 			Write("Boolean");
 		else if (type == CiByteType.Value || type is CiEnum)
 			Write("int");
+		else if (type == CiFloatType.Value)
+			Write("Number");
 		else if (type is CiArrayType)
-			Write(((CiArrayType) type).ElementType == CiByteType.Value ? "ByteArray" : "Array");
+			Write(((CiArrayType)type).ElementType == CiByteType.Value ? "ByteArray" : "Array");
 		else if (type is CiDelegate)
 			Write("Function");
 		else
-			Write(type.Name);
+		Write(type.Name);
 	}
 
 	bool WriteInit(CiType type)
@@ -311,7 +313,7 @@ public class GenAs : SourceGenerator, ICiSymbolVisitor
 
 	protected override void Write(CiBinaryExpr expr)
 	{
-		if (expr.Op == CiToken.Slash) {
+		if (expr.Op == CiToken.Slash && expr.Type != CiFloatType.Value) {
 			Write("int(");
 			WriteChild(CiPriority.Multiplicative, expr.Left);
 			Write(" / ");

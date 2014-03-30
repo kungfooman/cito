@@ -46,6 +46,17 @@ public class GenJsWithTypedArrays : GenJs
 				Write("))");
 				return;
 			}
+			if (arrayType.ElementType == CiFloatType.Value) {
+				Write("new Float32Array(new ArrayBuffer(");
+				if (arrayType.LengthExpr != null) {
+					WriteChild(CiPriority.Shift, arrayType.LengthExpr);
+					Write(" << 2");
+				}
+				else
+					Write(arrayType.Length << 2);
+				Write("))");
+				return;
+			}
 		}
 		base.WriteNew(type);
 	}

@@ -254,7 +254,7 @@ public class GenJs : SourceGenerator
 
 	protected override void Write(CiBinaryExpr expr)
 	{
-		if (expr.Op == CiToken.Slash) {
+		if (expr.Op == CiToken.Slash && expr.Type != CiFloatType.Value) {
 			Write("Math.floor(");
 			WriteChild(CiPriority.Multiplicative, expr.Left);
 			Write(" / ");

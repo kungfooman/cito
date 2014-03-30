@@ -39,6 +39,7 @@ public partial class CiParser : CiLexer
 		globals.Add(CiBoolType.Value);
 		globals.Add(CiByteType.Value);
 		globals.Add(CiIntType.Value);
+        globals.Add(CiFloatType.Value);
 		globals.Add(CiStringPtrType.Value);
 		globals.Add(new CiConst { Name = "true", Value = true, Type = CiBoolType.Value });
 		globals.Add(new CiConst { Name = "false", Value = false, Type = CiBoolType.Value });

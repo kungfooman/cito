@@ -172,6 +172,12 @@ public class CiResolver : ICiSymbolVisitor, ICiTypeVisitor, ICiExprVisitor, ICiS
 				return new CiConstExpr((object) (byte) (int) konst.Value);
 			return new CiCoercion { ResultType = expected, Inner = expr };
 		}
+		if (expected == CiFloatType.Value && got == CiIntType.Value) {
+			return new CiCoercion { ResultType = expected, Inner = expr };
+		}
+		if (expected == CiFloatType.Value && got == CiByteType.Value) {
+			return new CiCoercion { ResultType = expected, Inner = expr };
+		}
 		if (expected == CiStringPtrType.Value && (got == CiType.Null || got is CiStringType))
 			return expr;
 		if (expected is CiStringStorageType && got is CiStringType)
@@ -535,7 +541,12 @@ public class CiResolver : ICiSymbolVisitor, ICiTypeVisitor, ICiExprVisitor, ICiS
 			resolved = ResolveLValue(expr.Inner);
 		else
 			resolved = Resolve(expr.Inner);
-		expr.Inner = Coerce(resolved, CiIntType.Value);
+		if (resolved.Type is CiFloatType) {
+			expr.Inner = Coerce(resolved, CiFloatType.Value);
+		}
+		else {
+			expr.Inner = Coerce(resolved, CiIntType.Value);
+		}
 		if (expr.Op == CiToken.Minus && expr.Inner is CiConstExpr)
 			return new CiConstExpr(-GetConstInt(expr.Inner));
 		return expr;
@@ -563,6 +574,14 @@ public class CiResolver : ICiSymbolVisitor, ICiTypeVisitor, ICiExprVisitor, ICiS
 			string a = GetConstString(left);
 			string b = GetConstString(right);
 			return new CiConstExpr(a + b);
+		}
+		if ((expr.Op == CiToken.Plus || expr.Op == CiToken.Minus
+			|| expr.Op == CiToken.Asterisk || expr.Op == CiToken.Slash)
+			&& left.Type is CiFloatType || right.Type is CiFloatType) {
+			expr.Left = Coerce(left, CiFloatType.Value);
+			expr.Right = Coerce(right, CiFloatType.Value);
+			expr.ResultType = CiFloatType.Value;
+			return expr;
 		}
 		left = Coerce(left, CiIntType.Value);
 		right = Coerce(right, CiIntType.Value);
@@ -634,6 +653,9 @@ public class CiResolver : ICiSymbolVisitor, ICiTypeVisitor, ICiExprVisitor, ICiS
 		default:
 			type = CiIntType.Value;
 			break;
+		}
+		if (left.Type == CiFloatType.Value || right.Type == CiFloatType.Value) {
+			type = CiFloatType.Value;
 		}
 		expr.Left = Coerce(left, type);
 		expr.Right = Coerce(right, type);
@@ -809,7 +831,7 @@ public class CiResolver : ICiSymbolVisitor, ICiTypeVisitor, ICiExprVisitor, ICiS
 		CiType type = statement.Target.Type;
 		CheckCopyPtr(type, source);
 		statement.Source = Coerce(source, type);
-		if (statement.Op != CiToken.Assign && type != CiIntType.Value && type != CiByteType.Value) {
+		if (statement.Op != CiToken.Assign && type != CiIntType.Value && type != CiByteType.Value && type != CiFloatType.Value) {
 			if (statement.Op == CiToken.AddAssign && type is CiStringStorageType && statement.Source.Type is CiStringType)
 				{} // OK
 			else

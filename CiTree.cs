@@ -169,6 +169,20 @@ public class CiIntType : CiType
 	}
 }
 
+public class CiFloatType : CiType
+{
+	private CiFloatType() { }
+	public static readonly CiFloatType Value = new CiFloatType { Name = "float" };
+	public override Type DotNetType { get { return typeof(float); } }
+	public override CiSymbol LookupMember(string name)
+	{
+		switch (name) {
+			default: throw new ParseException("No member {0} in float", name);
+		}
+	}
+}
+
+
 public abstract class CiStringType : CiType
 {
 	public override Type DotNetType { get { return typeof(string); } }
@@ -605,7 +619,8 @@ public class CiBinaryExpr : CiExpr
 	public CiExpr Left;
 	public CiToken Op;
 	public CiExpr Right;
-	public override CiType Type { get { return CiIntType.Value; } }
+	public CiType ResultType = CiIntType.Value;
+	public override CiType Type { get { return ResultType; } }
 	public override bool HasSideEffect { get { return this.Left.HasSideEffect || this.Right.HasSideEffect; } }
 	public override CiExpr Accept(ICiExprVisitor v) { return v.Visit(this); }
 }
