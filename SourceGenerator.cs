@@ -18,6 +18,7 @@
 // along with CiTo.  If not, see http://www.gnu.org/licenses/
 
 using System;
+using System.Globalization;
 using System.IO;
 
 namespace Foxoft.Ci
@@ -49,29 +50,23 @@ public abstract class SourceGenerator : ICiStatementVisitor
 		}
 	}
 
-	protected void Write(char c)
-	{
-		StartLine();
-		this.Writer.Write(c);
-	}
+    /// <summary>
+    /// Writes the ToString() value of the object
+    /// </summary>
+    protected void Write(object value)
+    {
+        StartLine();
 
-	protected void Write(string s)
-	{
-		StartLine();
-		this.Writer.Write(s);
-	}
-
-	protected void Write(int i)
-	{
-		StartLine();
-		this.Writer.Write(i);
-	}
-
-	protected void WriteLowercase(string s)
-	{
-		foreach (char c in s)
-			this.Writer.Write(char.ToLowerInvariant(c));
-	}
+        if (value is float)
+        {
+            float f = (float)value;
+            this.Writer.Write(f.ToString(CultureInfo.InvariantCulture));//always dot as decimal seperator
+        }
+        else
+        {
+            this.Writer.Write(value.ToString());
+        }
+    }
 
 	protected static string ToCamelCase(string s)
 	{
@@ -289,42 +284,55 @@ public abstract class SourceGenerator : ICiStatementVisitor
 
 	protected virtual void WriteConst(object value)
 	{
-		if (value is bool)
-			Write((bool) value ? "true" : "false");
-		else if (value is byte)
-			Write((byte) value);
-		else if (value is int)
-			Write((int) value);
-		else if (value is string) {
-			Write('"');
-			foreach (char c in (string) value) {
-				switch (c) {
-				case '\t': Write("\\t"); break;
-				case '\r': Write("\\r"); break;
-				case '\n': Write("\\n"); break;
-				case '\\': Write("\\\\"); break;
-				case '\"': Write("\\\""); break;
-				default: Write(c); break;
-				}
-			}
-			Write('"');
-		}
-		else if (value is CiEnumValue) {
-			CiEnumValue ev = (CiEnumValue) value;
-			Write(ev.Type.Name);
-			Write('.');
-			Write(ev.Name);
-		}
-		else if (value is Array) {
-			Write("{ ");
-			WriteContent((Array) value);
-			Write(" }");
-		}
-		else if (value == null)
-			Write("null");
-		else
-			throw new ArgumentException(value.ToString());
+        if (value is bool)
+            Write((bool)value ? "true" : "false");
+        else if (value is byte || value is int)
+            Write(value);
+        else if (value is float)
+        {
+            Write(value);
+            Write('f');//f suffix for float
+        }
+        else if (value is string)
+        {
+            Write('"');
+            foreach (char c in (string)value)
+            {
+                WriteStringChar(c);
+            }
+            Write('"');
+        }
+        else if (value is CiEnumValue)
+        {
+            CiEnumValue ev = (CiEnumValue)value;
+            Write(ev.Type.Name);
+            Write('.');
+            Write(ev.Name);
+        }
+        else if (value is Array)
+        {
+            Write("{ ");
+            WriteContent((Array)value);
+            Write(" }");
+        }
+        else if (value == null)
+            Write("null");
+        else
+            throw new ArgumentException("unable to parse type " + value.GetType());
 	}
+
+    protected virtual void WriteStringChar(char c)
+    {
+        switch (c)
+        {
+            case '\t': Write("\\t"); break;
+            case '\r': Write("\\r"); break;
+            case '\n': Write("\\n"); break;
+            case '\\': Write("\\\\"); break;
+            case '\"': Write("\\\""); break;
+            default: Write(c); break;
+        }
+    }
 
 	protected virtual CiPriority GetPriority(CiExpr expr)
 	{

@@ -492,6 +492,8 @@ public class CiConstExpr : CiExpr
 			if (this.Value is byte) return CiByteType.Value;
 			if (this.Value is int) return CiIntType.Value;
 			if (this.Value is string) return CiStringPtrType.Value;
+            if (this.Value is float) return CiFloatType.Value;
+            //if (this.Value is double) return CiDoubleType.Value;
 			if (this.Value is CiEnumValue) return ((CiEnumValue) this.Value).Type;
 			if (this.Value == null) return CiType.Null;
 			throw new NotImplementedException();

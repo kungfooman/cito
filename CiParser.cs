@@ -185,8 +185,8 @@ public partial class CiParser : CiLexer
 			return new CiCondNotExpr { Inner = inner };
 		}
 		CiExpr result;
-		if (See(CiToken.IntConstant)) {
-			result = new CiConstExpr(this.CurrentInt);
+		if (See(CiToken.NumericConstant)) {
+			result = new CiConstExpr(this.CurrentNumeric);
 			NextToken();
 		}
 		else if (See(CiToken.StringConstant)) {
