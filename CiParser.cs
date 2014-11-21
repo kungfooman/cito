@@ -776,9 +776,9 @@ public partial class CiParser : CiLexer
                     */
 					if (callType != CiCallType.Normal)
 						throw new ParseException("Fields cannot be static, abstract, virtual or override");
-					if (type == CiType.Void)
+					if (type == CiType.Void) 
 						throw new ParseException("Field is void");
-					Expect(CiToken.Semicolon);
+					Expect(CiToken.Semicolon); 
 					symbol = new CiField { Class = klass, Type = type, Name = name, Visibility = visibility };
 				}
 			}
