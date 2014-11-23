@@ -109,19 +109,23 @@ public class GenJs : SourceGenerator
 
 	protected override void WriteConst(object value)
 	{
-		if (value is CiEnumValue) {
-			CiEnumValue ev = (CiEnumValue) value;
-			Write(ev.Type.Name);
-			Write('.');
-			WriteUppercaseWithUnderscores(ev.Name);
-		}
-		else if (value is Array) {
-			Write("[ ");
-			WriteContent((Array) value);
-			Write(" ]");
-		}
-		else
-			base.WriteConst(value);
+        if (value is CiEnumValue)
+        {
+            CiEnumValue ev = (CiEnumValue)value;
+            Write(ev.Type.Name);
+            Write('.');
+            WriteUppercaseWithUnderscores(ev.Name);
+        }
+        else if (value is Array)
+        {
+            Write("[ ");
+            WriteContent((Array)value);
+            Write(" ]");
+        }
+        else if (value is float)
+            Write(value);//no f suffix for js
+        else
+            base.WriteConst(value);
 	}
 
 	protected override void WriteName(CiConst konst)

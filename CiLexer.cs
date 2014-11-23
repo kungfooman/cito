@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -29,7 +30,7 @@ public enum CiToken
 {
 	EndOfFile,
 	Id,
-	IntConstant,
+	NumericConstant,
 	StringConstant,
 	Semicolon,
 	Dot,
@@ -131,7 +132,7 @@ public class CiLexer
 	public int InputLineNo;
 	protected CiToken CurrentToken;
 	protected string CurrentString;
-	protected int CurrentInt;
+    protected object CurrentNumeric;
 	protected StringBuilder CopyTo;
 	public HashSet<string> PreSymbols;
 	bool AtLineStart = true;
@@ -394,10 +395,10 @@ public class CiLexer
 			case ':':
 				return CiToken.Colon;
 			case '\'':
-				this.CurrentInt = ReadCharLiteral();
+				this.CurrentNumeric = (int)ReadCharLiteral();
 				if (ReadChar() != '\'')
 					throw new ParseException("Unterminated character literal");
-				return CiToken.IntConstant;
+				return CiToken.NumericConstant;
 			case '"': {
 				StringBuilder sb = new StringBuilder();
 				while (PeekChar() != '"')
@@ -414,8 +415,8 @@ public class CiLexer
 					for (;;) {
 						int d = ReadDigit(true);
 						if (d < 0) {
-							this.CurrentInt = i;
-							return CiToken.IntConstant;
+							this.CurrentNumeric = i;
+							return CiToken.NumericConstant;
 						}
 						if (i > 0x7ffffff)
 							throw new ParseException("Hex number too big");
@@ -424,22 +425,102 @@ public class CiLexer
 				}
 				goto case '1';
 			case '1': case '2': case '3': case '4':
-			case '5': case '6': case '7': case '8': case '9': {
-				int i = c - '0';
-				for (;;) {
-					int d = ReadDigit(false);
-					if (d < 0) {
-						this.CurrentInt = i;
-						return CiToken.IntConstant;
-					}
-					if (i == 0)
-						throw new ParseException("Octal numbers not supported");
-					if (i > 214748364)
-						throw new ParseException("Integer too big");
-					i = 10 * i + d;
-					if (i < 0)
-						throw new ParseException("Integer too big");
-				}
+			case '5': case '6': case '7': case '8': case '9': 
+                {
+                    StringBuilder builder = new StringBuilder();
+
+                    //add start character
+                    builder.Append((char)c);
+
+                    string strTypeIndicator = "";
+                    bool blnSeperator = false;
+                    bool blnFinished = false;
+
+				    while(!blnFinished) 
+                    {
+                        //read next char
+                        char chr = (char)PeekChar();
+
+                        if (char.IsNumber(chr))
+                        {
+                            //simple numeric
+                            builder.Append(chr);
+                        }
+                        else if(chr == '.')
+                        {
+                            //Decimal seperator
+                            if (!blnSeperator)
+                            {
+                                blnSeperator = true;
+                                builder.Append(chr);
+
+                                //handle it als float, if nothing else is found
+                                strTypeIndicator = "f";
+                            }
+                            else
+                            {
+                                throw new ParseException("Second decimal seperator in constant");
+                            }
+                        }
+                        else if (chr == 'f' || chr == 'd')
+                        {
+                            //Type indicator:  0.5f
+                            strTypeIndicator = chr.ToString();
+                            ReadChar();//we finished the constant, but still need to consume the indicator
+                            blnFinished = true;
+                        }
+                        else
+                        {
+                            //constant ended
+                            blnFinished = true;
+                        }
+
+                        if (!blnFinished)
+                            ReadChar();
+				    }
+
+                    //parse the numeric
+                    switch (strTypeIndicator)
+                    {
+                        case "":
+                            {
+                                //integer
+                                int nValue = 0;
+                                if (int.TryParse(builder.ToString(), out nValue))
+                                    this.CurrentNumeric = nValue;
+                                else
+                                    throw new ParseException("unable to convert " + builder.ToString() + " to integet");
+
+                                break;
+                            }
+                        case "f":
+                            {
+                                float fResult = 0f;
+
+                                if (float.TryParse(builder.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out fResult))
+                                    this.CurrentNumeric = fResult;
+                                else
+                                    throw new ParseException("unable to convert " + builder.ToString() + " to float");
+
+                                break;
+                            }
+                        case "d":
+                            {
+                                throw new NotImplementedException("double is not supported");
+                                // if somebody implements doubles, he can uncomment this
+                                /*
+                                double dValue = 0d;
+
+                                if (double.TryParse(builder.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out dValue))
+                                    this.CurrentNumeric = dValue;
+                                else
+                                    throw new ParseException("unable to convert " + builder.ToString() + " to double");
+                                break;
+                                */
+                            }
+                    }
+
+                    return CiToken.NumericConstant;
 			}
 			case 'A': case 'B': case 'C': case 'D': case 'E':
 			case 'F': case 'G': case 'H': case 'I': case 'J':

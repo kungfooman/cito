@@ -185,8 +185,8 @@ public partial class CiParser : CiLexer
 			return new CiCondNotExpr { Inner = inner };
 		}
 		CiExpr result;
-		if (See(CiToken.IntConstant)) {
-			result = new CiConstExpr(this.CurrentInt);
+		if (See(CiToken.NumericConstant)) {
+			result = new CiConstExpr(this.CurrentNumeric);
 			NextToken();
 		}
 		else if (See(CiToken.StringConstant)) {
@@ -769,14 +769,17 @@ public partial class CiParser : CiLexer
 					symbol = method;
 				}
 				else {
+
+                    /* why not?
 					if (visibility != CiVisibility.Private)
 						throw new ParseException("Fields must be private");
+                    */
 					if (callType != CiCallType.Normal)
 						throw new ParseException("Fields cannot be static, abstract, virtual or override");
-					if (type == CiType.Void)
+					if (type == CiType.Void) 
 						throw new ParseException("Field is void");
-					Expect(CiToken.Semicolon);
-					symbol = new CiField { Class = klass, Type = type, Name = name };
+					Expect(CiToken.Semicolon); 
+					symbol = new CiField { Class = klass, Type = type, Name = name, Visibility = visibility };
 				}
 			}
 			symbol.Documentation = doc;

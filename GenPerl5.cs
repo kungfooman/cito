@@ -121,45 +121,39 @@ public abstract class GenPerl5 : SourceGenerator
 
 	protected override void WriteConst(object value)
 	{
-		if (value is bool)
-			Write((bool) value ? '1' : '0');
-		else if (value is byte)
-			Write((byte) value);
-		else if (value is int)
-			Write((int) value);
-		else if (value is string) {
-			Write('"');
-			foreach (char c in (string) value) {
-				switch (c) {
-				case '\t': Write("\\t"); break;
-				case '\r': Write("\\r"); break;
-				case '\n': Write("\\n"); break;
-				case '\\': Write("\\\\"); break;
-				case '\"': Write("\\\""); break;
-				case '$': Write("\\$"); break;
-				case '@': Write("\\@"); break;
-				default: Write(c); break;
-				}
-			}
-			Write('"');
-		}
-		else if (value is CiEnumValue) {
-			CiEnumValue ev = (CiEnumValue) value;
-			Write(ev.Type.Name);
-			Write("::");
-			WriteUppercaseWithUnderscores(ev.Name);
-			Write("()");
-		}
-		else if (value is Array) {
-			Write("( ");
-			WriteContent((Array) value);
-			Write(" )");
-		}
-		else if (value == null)
-			Write("undef");
-		else
-			throw new ArgumentException(value.ToString());
+        if (value is bool)
+            Write((bool)value ? '1' : '0');
+        else if (value is float)
+            Write(value);// no f suffix for perl
+        else if (value is CiEnumValue)
+        {
+            CiEnumValue ev = (CiEnumValue)value;
+            Write(ev.Type.Name);
+            Write("::");
+            WriteUppercaseWithUnderscores(ev.Name);
+            Write("()");
+        }
+        else if (value is Array)
+        {
+            Write("( ");
+            WriteContent((Array)value);
+            Write(" )");
+        }
+        else if (value == null)
+            Write("undef");
+        else
+            base.WriteConst(value);
 	}
+
+    protected override void WriteStringChar(char c)
+    {
+        switch (c)
+        {
+            case '$': Write("\\$"); break;
+            case '@': Write("\\@"); break;
+            default: base.WriteStringChar(c); break;
+        }
+    }
 
 	void WriteConst(string name, object value)
 	{
@@ -637,7 +631,7 @@ public abstract class GenPerl5 : SourceGenerator
 			}
 			else {
 				Write('$');
-				WriteLowercase(method.Class.Name);
+				Write(method.Class.Name.ToLower());
 				Write("-E<gt>");
 			}
 			WriteLowercaseWithUnderscores(method.Name);
@@ -712,7 +706,7 @@ public abstract class GenPerl5 : SourceGenerator
 
 		if (klass.Visibility == CiVisibility.Public) {
 			Write("=head2 C<$");
-			WriteLowercase(klass.Name);
+			Write(klass.Name.ToLower());
 			Write(" = ");
 			Write(this.Package);
 			Write(klass.Name);
