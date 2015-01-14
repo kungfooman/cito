@@ -547,8 +547,24 @@ public class CiResolver : ICiSymbolVisitor, ICiTypeVisitor, ICiExprVisitor, ICiS
 		else {
 			expr.Inner = Coerce(resolved, CiIntType.Value);
 		}
-		if (expr.Op == CiToken.Minus && expr.Inner is CiConstExpr)
-			return new CiConstExpr(-GetConstInt(expr.Inner));
+        if (expr.Op == CiToken.Minus && expr.Inner is CiConstExpr)
+        {
+            //get value
+            object value = ((CiConstExpr)expr.Inner).Value;
+
+            //Negate
+            if (value is int)
+            {
+                value = -(int)value;
+            }
+            else if (value is float)
+            {
+                value = -(float)value;
+            }
+
+            //build new expression
+            return new CiConstExpr(value);
+        }
 		return expr;
 	}
 
