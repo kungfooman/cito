@@ -6,7 +6,6 @@ tags
 *.pdb
 *.html
 *.suo
-/ci-logo.ico
 /ci-logo.png
 /MANIFEST
 /hello.c
@@ -21,3 +20,6 @@ tags
 /hello.pm
 /hello5.10.pm
 prettify.*
+Backup
+Thumbs.db
+UpgradeLog.htm

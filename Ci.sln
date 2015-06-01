@@ -1,6 +1,7 @@
-
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CiTo", "CiTo.csproj", "{247EAF20-A9A9-4895-B2C2-083756987BE5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CiPad", "CiPad.csproj", "{706860A9-7545-4F7C-9A67-CF4DA81DDE03}"
